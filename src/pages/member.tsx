@@ -4,64 +4,34 @@ import { useEffect, useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import HouseIcon from "@mui/icons-material/House";
 import type { Member } from "@/interfaces/member";
+import { addMember, getMembers, removeMember } from "@/api/members";
 
 // Danh sách mặc định
-const defaultMembers: Member[] = [
-  { id: 1, name: "Đặng Tuấn Kiệt" },
-  { id: 2, name: "Nguyễn Viết Khôi" },
-  { id: 3, name: "Đỗ Phước Hưng" },
-  { id: 4, name: "Nguyễn Minh Hữu" },
-  { id: 5, name: "Huỳnh Đức Huy" },
-  { id: 6, name: "Huỳnh Tuấn Đạt" },
-];
+
 
 export default function Member() {
+  const [members, setMembers] = useState<Member[]>([]);
   const [memberName, setMemberName] = useState("");
-  const [memberList, setMemberList] = useState<Member[]>([]);
-  const [hasMounted, setHasMounted] = useState(false); // <- chặn render sớm
 
-  // Đảm bảo chỉ chạy sau khi component đã mounted trên client
   useEffect(() => {
-    setHasMounted(true);
+    getMembers().then(setMembers);
   }, []);
 
-  // Load danh sách từ localStorage khi đã mounted
-  useEffect(() => {
-    if (!hasMounted) return;
+  
 
-    const stored = localStorage.getItem("members");
-    if (stored) {
-      setMemberList(JSON.parse(stored));
-    } else {
-      setMemberList(defaultMembers);
-      localStorage.setItem("members", JSON.stringify(defaultMembers));
-    }
-  }, [hasMounted]);
-
-  // Lưu khi danh sách thay đổi
-  useEffect(() => {
-    if (!hasMounted) return;
-    localStorage.setItem("members", JSON.stringify(memberList));
-  }, [memberList, hasMounted]);
+  const handleRemoveMember = (id: number) => {
+    removeMember(id).then(() => {
+      getMembers().then(setMembers);
+    });
+  };
 
   const handleAddMember = () => {
     if (memberName.trim() === "") return;
-
-    const newMember: Member = {
-      id: memberList.length > 0 ? memberList[memberList.length - 1].id + 1 : 1,
-      name: memberName.trim(),
-    };
-
-    setMemberList([...memberList, newMember]);
-    setMemberName("");
+    addMember({ name: memberName }).then((newMember) => {
+      setMembers((prev) => [...prev, newMember]);
+      setMemberName(""); // Reset input field
+    });
   };
-
-  const handleRemoveMember = (id: number) => {
-    setMemberList(memberList.filter((m) => m.id !== id));
-  };
-
-  // Nếu chưa mount xong, tránh render
-  if (!hasMounted) return null;
 
   return (
     <Box sx={{ p: 2, maxWidth: 600, mx: "auto" }}>
@@ -115,7 +85,7 @@ export default function Member() {
       </Box>
 
       <Box>
-        {memberList.map((member) => (
+        {members.map((member) => (
           <Box
             key={member.id}
             sx={{

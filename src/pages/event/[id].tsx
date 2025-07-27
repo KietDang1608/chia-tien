@@ -41,7 +41,6 @@ export default function EventDetailPage() {
             <Typography align='center' variant="h5" sx={{ mb: 2 , backgroundColor: "#222831", color: "#EEEEEE", padding: "1rem", borderRadius: "8px"}}>
                 {event.name} - {new Date(event.date).toLocaleDateString('vi-VN')}
             </Typography>
-            
         </Box>
     );
 }
